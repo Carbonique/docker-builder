@@ -1,0 +1,33 @@
+stages:
+    - build
+
+workflow:
+  rules:
+  - if: '$CI_PIPELINE_SOURCE == "web"'
+    when: always
+  - when: never
+
+variables:
+  DIRECTORY:
+    value: "" 
+    description: "The directory in which the Dockerfile is saved"
+  IMAGE_NAME:
+    value: "" 
+    description: "Image name for the to be created Docker image"
+  IMAGE_TAG:
+    value: "" 
+    description: "Tag for the to be created Docker image"
+  DOCKERFILE_NAME:
+    value: "Dockerfile" 
+    description: "Dockerfile file name"
+
+build-image:
+  image: docker:stable
+  services:
+    - docker:dind
+  stage: build
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd $DIRECTORY
+    - docker build -t $CI_REGISTRY/thuisnetwerk/templates/dockerfiles/${IMAGE_NAME}:${IMAGE_TAG} -f $DOCKERFILE_NAME .
+    - docker push $CI_REGISTRY/thuisnetwerk/templates/dockerfiles/${IMAGE_NAME}:${IMAGE_TAG}
